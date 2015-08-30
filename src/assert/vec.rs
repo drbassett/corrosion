@@ -1,15 +1,73 @@
+//! Assertions to help with testing `Vec`s.
+
 use std::collections::HashSet;
 use std::fmt::{Debug, Write};
 
+/// A wrapper around a `Vec` for doing specialized assertions
 pub struct AssertVec<T>(Vec<T>);
 
 impl<T> AssertVec<T> {
+	/// Creates a new `AssertVec` from the given `Vec`. Typically, this `Vec`
+	/// is the product of the system-under-test.
 	pub fn new(v : Vec<T>) -> AssertVec<T> {
 		AssertVec(v)
 	}
 }
 
 impl<T: Eq + Debug> AssertVec<T> {
+	/// Tests if the `Vec` wrapped by this asserter contains the same
+	/// elements as another `Vec`.
+	///
+	/// "Contains the same elements" means that for each element in one
+	/// `Vec`, the other `Vec` must contain a corresponding equal
+	/// element. If there are duplicate elements in one `Vec`, the same
+	/// number of duplicate elements must be contained in the other
+	/// element. Thus, there must be a one-to-one mapping between equal
+	/// elements between the two vectos. Note that this definition does
+	/// not require that the elements be in the same order in both `Vec`s.
+	///
+	/// This comparison differs from comparing `Vec`s with `==`, which
+	/// requires that `Vec`s are *sequentially equal*. It is often hard
+	/// to predict the order of the elements that a system-under-test (SUT)
+	/// will produce, especially if the SUT implementation changes in the
+	/// future, so using `==` in tests is brittle. When the order of
+	/// elements doesn't matter, using this function in tests can prevent
+	/// them from breaking inexpicably when the SUT is updated.
+	///
+	/// This assert follows the same contract as the built in asserts
+	/// (e.g. `assert_eq!`) in that it panics on failure, and does
+	/// nothing on success.
+	///
+	/// # Panics
+	///
+	/// Panics if the expected and wrapped `Vec`s contain different
+	/// elements.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use corrosion::assert::vec::AssertVec;
+	///
+	/// let asserter = AssertVec::<u32>::new(vec![3, 5, 2, 1, 4]);
+	/// asserter.contains_only(vec![1, 2, 3, 4, 5]);
+	///
+	/// let asserter = AssertVec::<u32>::new(vec![1, 1, 2, 3]);
+	/// asserter.contains_only(vec![1, 1, 2, 3]);
+	/// ```
+	///
+	/// ```should_panic
+	/// use corrosion::assert::vec::AssertVec;
+	///
+	/// let asserter = AssertVec::<u32>::new(vec![1, 2, 3, 4]);
+	/// asserter.contains_only(vec![1, 2, 3]);
+	/// ```
+	///
+	/// ```should_panic
+	/// use corrosion::assert::vec::AssertVec;
+	///
+	/// let asserter = AssertVec::<u32>::new(vec![1, 1, 2, 3]);
+	/// asserter.contains_only(vec![1, 2, 3]);
+	/// ```
 	pub fn contains_only(&self, expected : Vec<T>) {
 		let mut exp_leftovers : Vec<_>
 			= (0..expected.len()).collect();
