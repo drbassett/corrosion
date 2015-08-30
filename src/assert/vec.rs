@@ -139,6 +139,39 @@ impl<T: Eq + Debug> AssertVec<T> {
 	}
 }
 
+impl<T: Debug> AssertVec<T> {
+	/// Tests if the `Vec` wrapped by this asserter is empty.
+	///
+	/// This provides exactly the same result as `assert!(vec.is_empty())`.
+	/// The advantage of using this method over a simple assertion is that
+	/// it provides a more informative error message.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use corrosion::assert::vec::AssertVec;
+	///
+	/// // OK - Vec is empty
+	/// let asserter = AssertVec::<u32>::new(Vec::new());
+	/// asserter.is_empty();
+	/// ```
+	///
+	/// ```should_panic
+	/// use corrosion::assert::vec::AssertVec;
+	///
+	/// // panics - Vec is *not* empty
+	/// let asserter = AssertVec::<u32>::new(vec![1, 2, 3]);
+	/// asserter.is_empty();
+	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the wrapped `Vec` is *not* empty.
+	pub fn is_empty(&self) {
+		assert!(self.0.is_empty(), "Expected empty Vec, but was: {:?}", self.0);
+	}
+}
+
 #[cfg(test)]
 mod test {
 	use super::*;
@@ -232,5 +265,18 @@ mod test {
 		let sut = AssertVec::<u32>::new(vec![1, 2, 2, 1, 3]);
 		let expected = vec![1, 2, 3];
 		sut.contains_only(expected);
+	}
+	
+	#[test]
+	fn is_empty_with_empty_vec() {
+		let sut = AssertVec::<u32>::new(Vec::new());
+		sut.is_empty();
+	}
+	
+	#[test]
+	#[should_panic(expected = "Expected empty Vec, but was: [1, 2, 3]")]
+	fn is_empty_with_not_empty_vec() {
+		let sut = AssertVec::<u32>::new(vec![1, 2, 3]);
+		sut.is_empty();
 	}
 }
