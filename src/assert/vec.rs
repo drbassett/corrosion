@@ -48,9 +48,11 @@ impl<T: Eq + Debug> AssertVec<T> {
 	/// ```
 	/// use corrosion::assert::vec::AssertVec;
 	///
+	/// // OK - same elements, just in a different order
 	/// let asserter = AssertVec::<u32>::new(vec![3, 5, 2, 1, 4]);
 	/// asserter.contains_only(vec![1, 2, 3, 4, 5]);
 	///
+	/// // OK - duplicate elements, but the same number in each Vec
 	/// let asserter = AssertVec::<u32>::new(vec![1, 1, 2, 3]);
 	/// asserter.contains_only(vec![1, 1, 2, 3]);
 	/// ```
@@ -58,6 +60,7 @@ impl<T: Eq + Debug> AssertVec<T> {
 	/// ```should_panic
 	/// use corrosion::assert::vec::AssertVec;
 	///
+	/// // panics - the Vec being tested contains an extra element
 	/// let asserter = AssertVec::<u32>::new(vec![1, 2, 3, 4]);
 	/// asserter.contains_only(vec![1, 2, 3]);
 	/// ```
@@ -65,7 +68,8 @@ impl<T: Eq + Debug> AssertVec<T> {
 	/// ```should_panic
 	/// use corrosion::assert::vec::AssertVec;
 	///
-	/// let asserter = AssertVec::<u32>::new(vec![1, 1, 2, 3]);
+	/// // panics - the Vec being tested contains an additional 2
+	/// let asserter = AssertVec::<u32>::new(vec![1, 2, 2, 3]);
 	/// asserter.contains_only(vec![1, 2, 3]);
 	/// ```
 	pub fn contains_only(&self, expected : Vec<T>) {
